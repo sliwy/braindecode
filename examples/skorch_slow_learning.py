@@ -308,7 +308,7 @@ clf = EEGClassifier(
             'accuracy', name='valid_acc', on_train=False,
             lower_is_better=False)),
         ('Checkpoint', cp),
-        ('lr', LRScheduler(policy='CosineAnnealingLR', T_max=100)),
+        ('lr', LRScheduler(policy='CosineAnnealingLR', T_max=50)),
         ('progress', ProgressBar())
     ],
     iterator_train=DataLoader,
