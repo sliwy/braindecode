@@ -22,39 +22,6 @@ from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 
 
-class ModelCheckpoint:
-    def __init__(self):
-        self.model_path = '/tmp/' + '{:%H_%M_%S-%d-%m-%Y}'.format(
-            datetime.now()) + '.model'
-        self.best_metric_value = None
-
-    def save_model(self, metric_value, model, low_better):
-        if self.best_metric_value is None:
-            torch.save(model, self.model_path)
-            self.best_metric_value = metric_value
-
-        if low_better:
-            if metric_value < self.best_metric_value:
-                torch.save(model, self.model_path)
-                print(
-                    'Model checkpoint: Model saved as {}. Current metric value '
-                    '{:.4f} < {:.4f}'.format(
-                        self.model_path, metric_value, self.best_metric_value))
-                self.best_metric_value = metric_value
-        else:
-            if metric_value > self.best_metric_value:
-                torch.save(model, self.model_path)
-                print(
-                    'Model checkpoint: Model saved as {}. Current metric value '
-                    '{:.4f} > {:.4f}'.format(
-                        self.model_path, metric_value, self.best_metric_value))
-                self.best_metric_value = metric_value
-
-    def load_best_model(self):
-        print('Loading saved model.')
-        return torch.load(self.model_path)
-
-
 def train(net, dataset_train, dataset_val, dataset_test, lr=0.001,
           batch_size=200, epochs=100, device='cpu'):
     dataloader_train = DataLoader(dataset_train, batch_size=batch_size,
@@ -72,7 +39,6 @@ def train(net, dataset_train, dataset_val, dataset_test, lr=0.001,
     loss_fn = nn.NLLLoss()
     optimizer = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=0.0001)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, epochs)
-    model_checkpointer = ModelCheckpoint()
 
     try:
         net.train()
@@ -128,13 +94,10 @@ def train(net, dataset_train, dataset_val, dataset_test, lr=0.001,
                   ' Train accuracy {:.4f}'.format(accuracy_epochs_train[-1]),
                   ' Val loss: {:.4f}'.format(loss_epochs_val[-1]),
                   ' Val accuracy: {:.4f}'.format(accuracy_epochs_val[-1]))
-            model_checkpointer.save_model(accuracy_epochs_val[-1], net,
-                                          low_better=False)
 
     except KeyboardInterrupt:
         pass
     # TEST
-    net = model_checkpointer.load_best_model()
     net.eval()
     accuracy_test, loss_test = [], []
     batches_len = []
@@ -191,7 +154,7 @@ class TrainTestSplit(object):
         )
 
 
-data_folder = "/home/maciej/data/bci_competition"
+data_folder = "/data/bci_competition"
 subject_id = 1  # 1-9
 low_cut_hz = 4  # 0 or 4
 cuda = torch.cuda.is_available()

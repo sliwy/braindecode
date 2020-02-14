@@ -44,9 +44,9 @@ class TrainTestSplit:
     
 def train(net, dataset_train, dataset_val, lr=0.001, batch_size=200, epochs=100,
           device='cpu'):
-    
+
     dataloader_train = DataLoader(dataset_train, batch_size=batch_size,
-                                  shuffle=True, drop_last=True)
+                                  shuffle=True)
     dataloader_val = DataLoader(dataset_val, batch_size=batch_size,
                                 shuffle=False)
 
@@ -116,7 +116,6 @@ def train(net, dataset_train, dataset_val, lr=0.001, batch_size=200, epochs=100,
 
     except KeyboardInterrupt:
         pass
-    # TEST
     net.eval()
     return net, dict(accuracy_train=accuracy_epochs_train,
                      loss_train=loss_epochs_train,
@@ -203,7 +202,7 @@ clf = MyClassifier(
     model_skorch,
     criterion=torch.nn.NLLLoss,
     optimizer=torch.optim.Adam,
-    optimizer__lr=0.001,
+    optimizer__lr=lr,
     train_split=splitter,
     batch_size=batch_size,
     lr=lr,
