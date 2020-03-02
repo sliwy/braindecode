@@ -67,7 +67,7 @@ class EEGClassifier(NeuralNetClassifier):
                         )
                     else:
                         train_scoring = PostEpochTrainScoring(
-                            callback, lower_is_better, name=train_name
+                            callback, lower_is_better, on_train=True, name=train_name
                         )
                         valid_scoring = EpochScoring(
                             callback, lower_is_better, on_train=False, name=valid_name
