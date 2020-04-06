@@ -10,6 +10,5 @@ class CroppedLoss:
         self.loss_function = loss_function
 
     def __call__(self, preds, targets):
-        avg_preds = torch.mean(preds, dim=2)
-        avg_preds = avg_preds.squeeze(dim=1)
+        avg_preds = torch.mean(preds, dim=2).squeeze()
         return self.loss_function(avg_preds, targets)
