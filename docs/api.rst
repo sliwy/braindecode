@@ -61,6 +61,7 @@ Models
     HybridNet
     EEGResNet
     TCN
+    SleepStagerChambon2018
 
 Training
 ==========
@@ -91,7 +92,8 @@ Datasets
     BaseConcatDataset
     WindowsDataset
     MOABBDataset
-
+    TUHAbnormal
+    SleepPhysionet
 
 Data Utils
 ==========
@@ -115,6 +117,19 @@ Data Utils
     filterbank
     save_concat_dataset
     load_concat_dataset
+
+Samplers
+========
+
+:py:mod:`braindecode.samplers`:
+
+.. currentmodule:: braindecode.samplers
+
+.. autosummary::
+   :toctree: generated/
+
+   RecordingSampler
+   RelativePositioningSampler
 
 Utils
 =====
