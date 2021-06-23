@@ -181,9 +181,8 @@ def create_fixed_length_windows(
     list_of_windows_ds = Parallel(n_jobs=n_jobs)(
         delayed(_create_fixed_length_windows)(
             ds, start_offset_samples, stop_offset_samples, window_size_samples,
-            window_stride_samples, drop_last_window, mapping, preload,
-            drop_bad_windows, picks, reject, flat, on_missing,
-            raw_targets, last_target_only
+            window_stride_samples, drop_last_window, mapping, preload, drop_bad_windows,
+            picks, reject, flat, raw_targets, last_target_only, on_missing
         )
         for ds in concat_ds.datasets)
 
