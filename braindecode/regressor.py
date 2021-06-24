@@ -10,7 +10,9 @@ from skorch.classifier import NeuralNet
 from skorch.regressor import NeuralNetRegressor
 from skorch.utils import train_loss_score, valid_loss_score, noop, to_numpy
 
-from .training.scoring import PostEpochTrainScoring, CroppedTrialEpochScoring
+from .training.scoring import (PostEpochTrainScoring,
+                               CroppedTrialEpochScoring,
+                               CroppedTimeSeriesEpochScoring)
 from .util import ThrowAwayIndexLoader, update_estimator_docstring
 
 
@@ -47,7 +49,7 @@ class EEGRegressor(NeuralNetRegressor):
     __doc__ = update_estimator_docstring(NeuralNetRegressor, doc)
 
     def __init__(self, *args, cropped=False, callbacks=None,
-                 iterator_train__shuffle=True, aggregate_predictions=False, **kwargs):
+                 iterator_train__shuffle=True, aggregate_predictions=True, **kwargs):
         self.cropped = cropped
         callbacks = self._parse_callbacks(callbacks)
         # TODO: docstring for aggregate predictions
@@ -140,7 +142,7 @@ class EEGRegressor(NeuralNetRegressor):
             cbs = self._default_callbacks + self.callbacks
             epoch_cbs = []
             for name, cb in cbs:
-                if (cb.__class__.__name__ == 'CroppedTrialEpochScoring') and (
+                if isinstance(cb, (CroppedTrialEpochScoring, CroppedTimeSeriesEpochScoring)) and (
                         hasattr(cb, 'window_inds_')) and (not cb.on_train):
                     epoch_cbs.append(cb)
             # for trialwise decoding stuffs it might also be we don't have
