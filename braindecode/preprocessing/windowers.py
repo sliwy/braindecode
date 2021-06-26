@@ -119,8 +119,7 @@ def create_fixed_length_windows(
         concat_ds, start_offset_samples, stop_offset_samples,
         window_size_samples, window_stride_samples, drop_last_window,
         mapping=None, preload=False, drop_bad_windows=True, picks=None,
-        reject=None, flat=None, on_missing='error', n_jobs=1,
-        raw_targets=None, last_target_only=True
+        reject=None, flat=None, on_missing='error', n_jobs=1, last_target_only=True
 ):
     """Windower that creates sliding windows.
 
@@ -182,7 +181,7 @@ def create_fixed_length_windows(
         delayed(_create_fixed_length_windows)(
             ds, start_offset_samples, stop_offset_samples, window_size_samples,
             window_stride_samples, drop_last_window, mapping, preload, drop_bad_windows,
-            picks, reject, flat, raw_targets, last_target_only, on_missing
+            picks, reject, flat, last_target_only, on_missing
         )
         for ds in concat_ds.datasets)
 
@@ -299,8 +298,7 @@ def _create_windows_from_events(
 def _create_fixed_length_windows(
         ds, start_offset_samples, stop_offset_samples, window_size_samples,
         window_stride_samples, drop_last_window, mapping=None, preload=False,
-        drop_bad_windows=True, picks=None, reject=None, flat=None,
-        raw_targets=None, last_target_only=True,
+        drop_bad_windows=True, picks=None, reject=None, flat=None, last_target_only=True,
         on_missing='error'):
     """Create WindowsDataset from BaseDataset with sliding windows.
 
@@ -351,15 +349,14 @@ def _create_fixed_length_windows(
     if drop_bad_windows:
         mne_epochs.drop_bad()
 
-    return WindowsDataset(mne_epochs, ds.description,
-                          raw_targets=raw_targets,
+    return WindowsDataset(mne_epochs, ds.description, targets_from='channels',
                           last_target_only=last_target_only)
 
 
 # TODO: rethink trial/session naming for ECoG
 def create_windows_from_target_channels(
         concat_ds, window_size_samples=None, preload=False, drop_bad_windows=True,
-        picks=None, reject=None, flat=None, n_jobs=1, raw_targets=None, last_target_only=True):
+        picks=None, reject=None, flat=None, n_jobs=1, last_target_only=True):
     # _check_windowing_arguments(
     #     trial_start_offset_samples, trial_stop_offset_samples,
     #     window_size_samples, None)
@@ -367,13 +364,13 @@ def create_windows_from_target_channels(
     list_of_windows_ds = Parallel(n_jobs=n_jobs)(
         delayed(_create_windows_from_target_channels)(
             ds, window_size_samples, preload, drop_bad_windows, picks, reject,
-            flat, raw_targets, last_target_only, 'error') for ds in concat_ds.datasets)
+            flat, last_target_only, 'error') for ds in concat_ds.datasets)
     return BaseConcatDataset(list_of_windows_ds)
 
 
 def _create_windows_from_target_channels(
         ds, window_size_samples, preload=False, drop_bad_windows=True, picks=None,
-        reject=None, flat=None, raw_targets=None, last_target_only=True, on_missing='error'):
+        reject=None, flat=None, last_target_only=True, on_missing='error'):
     """Create WindowsDataset from BaseDataset with sliding windows.
 
     Parameters
@@ -416,8 +413,7 @@ def _create_windows_from_target_channels(
     if drop_bad_windows:
         mne_epochs.drop_bad()
 
-    return WindowsDataset(mne_epochs, ds.description,
-                          raw_targets=raw_targets,
+    return WindowsDataset(mne_epochs, ds.description, targets_from='channels',
                           last_target_only=last_target_only)
 
 
