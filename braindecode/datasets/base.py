@@ -191,8 +191,6 @@ class WindowsDataset(BaseDataset):
             Crop indices.
         """
         X = self.windows.get_data(item=index)[0].astype('float32')
-        if self.transform is not None:
-            X = self.transform(X)
         if self.targets_from == 'metadata':
             y = self.windows.metadata.loc[index, 'target']
         else:
@@ -206,6 +204,8 @@ class WindowsDataset(BaseDataset):
         # necessary to cast as list to get list of three tensors from batch,
         # otherwise get single 2d-tensor...
         crop_inds = self.crop_inds[index].tolist()
+        if self.transform is not None:
+            X = self.transform(X)
         return X, y, crop_inds
 
     def __len__(self):
