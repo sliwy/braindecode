@@ -173,6 +173,8 @@ class WindowsDataset(BaseDataset):
             :, ['i_window_in_trial', 'i_start_in_trial',
                 'i_stop_in_trial']].to_numpy()
 
+    from line_profiler_pycharm import profile
+    @profile
     def __getitem__(self, index):
         """Get a window and its target.
 
