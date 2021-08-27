@@ -173,6 +173,9 @@ class WindowsDataset(BaseDataset):
             :, ['i_window_in_trial', 'i_start_in_trial',
                 'i_stop_in_trial']].to_numpy()
 
+        if self.targets_from == 'channels':
+            self.misc_mask = np.array(self.windows.get_channel_types()) == 'misc'
+
     from line_profiler_pycharm import profile
     @profile
     def __getitem__(self, index):
@@ -196,13 +199,12 @@ class WindowsDataset(BaseDataset):
         if self.targets_from == 'metadata':
             y = self.windows.metadata.loc[index, 'target']
         else:
-            misc_mask = np.array(self.windows.get_channel_types()) == 'misc'
             if self.last_target_only:
-                y = X[misc_mask, -1]
+                y = X[self.misc_mask, -1]
             else:
-                y = X[misc_mask, :]
+                y = X[self.misc_mask, :]
             # remove the target channels from raw
-            X = X[~misc_mask, :]
+            X = X[~self.misc_mask, :]
         # necessary to cast as list to get list of three tensors from batch,
         # otherwise get single 2d-tensor...
         crop_inds = self.crop_inds[index].tolist()
