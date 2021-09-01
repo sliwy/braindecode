@@ -124,7 +124,7 @@ def _load_signals(fif_file, preload, is_raw):
 
 
 def load_concat_dataset(path, preload, ids_to_load=None, target_name=None,
-                        n_jobs=1):
+                        n_jobs=1, force_new_loading=False):
     """Load a stored BaseConcatDataset of BaseDatasets or WindowsDatasets from
     files.
 
@@ -141,6 +141,10 @@ def load_concat_dataset(path, preload, ids_to_load=None, target_name=None,
         target name.
     n_jobs: int
         Number of jobs to be used to read files in parallel.
+    force_new_loading: bool
+        If True always uses new loading function intended for datasets saved in the new way.
+        It should be used in case the dataset is saved with new logic but is incorrectly considered
+        as the old one, e.g. if the data files are too big and split during saving.
 
     Returns
     -------
@@ -148,9 +152,11 @@ def load_concat_dataset(path, preload, ids_to_load=None, target_name=None,
     """
     # if we encounter a dataset that was saved in 'the old way', call the
     # corresponding 'old' loading function
-    if _is_outdated_saved(path):
+    if not force_new_loading and _is_outdated_saved(path):
         warnings.warn("The way your dataset was saved is deprecated by now. "
-                      "Please save it again using dataset.save().", UserWarning)
+                      "Please save it again using dataset.save(). "
+                      "If you see this warning but your dataset is already saved using "
+                      "dataset.save() please consider using force_new_loading=True.", UserWarning)
         return _outdated_load_concat_dataset(
             path=path, preload=preload, ids_to_load=ids_to_load,
             target_name=target_name)

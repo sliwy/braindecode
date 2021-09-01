@@ -3,6 +3,7 @@
 # License: BSD-3
 
 import os
+from unittest.mock import patch
 
 import pytest
 import numpy as np
@@ -64,9 +65,10 @@ def test_load_concat_raw_dataset(setup_concat_raw_dataset, tmpdir):
                                'backwards compatibility purposes. DO NOT USE!'):
         concat_raw_dataset._outdated_save(path=tmpdir, overwrite=False)
     with pytest.warns(
-            UserWarning, match="The way your dataset was saved is deprecated by"
-                               " now. Please save it again using dataset.save()"
-                               "."):
+            UserWarning, match="The way your dataset was saved is deprecated by now. "
+                               "Please save it again using dataset.save\\(\\). "
+                               "If you see this warning but your dataset is already saved using "
+                               "dataset.save\\(\\) please consider using force_new_loading=True."):
         loaded_concat_raw_dataset = load_concat_dataset(
             path=tmpdir, preload=False)
     assert len(concat_raw_dataset) == len(loaded_concat_raw_dataset)
@@ -90,9 +92,10 @@ def test_load_concat_windows_dataset(setup_concat_windows_dataset, tmpdir):
                                'backwards compatibility purposes. DO NOT USE!'):
         concat_windows_dataset._outdated_save(path=tmpdir, overwrite=False)
     with pytest.warns(
-            UserWarning, match="The way your dataset was saved is deprecated by"
-                               " now. Please save it again using dataset.save()"
-                               "."):
+            UserWarning, match="The way your dataset was saved is deprecated by now. "
+                               "Please save it again using dataset.save\\(\\). "
+                               "If you see this warning but your dataset is already saved using "
+                               "dataset.save\\(\\) please consider using force_new_loading=True."):
         loaded_concat_windows_dataset = load_concat_dataset(
             path=tmpdir, preload=False)
     assert len(concat_windows_dataset) == len(loaded_concat_windows_dataset)
@@ -121,9 +124,11 @@ def test_load_multiple_concat_raw_dataset(setup_concat_raw_dataset, tmpdir):
                                    'USE!'):
             concat_raw_dataset._outdated_save(path=path, overwrite=False)
         with pytest.warns(
-                UserWarning, match="The way your dataset was saved is "
-                                   "deprecated by now. Please save it again "
-                                   "using dataset.save()."):
+                UserWarning, match="The way your dataset was saved is deprecated by now. "
+                                   "Please save it again using dataset.save\\(\\). "
+                                   "If you see this warning but your dataset is already saved "
+                                   "using dataset.save\\(\\) please consider using "
+                                   "force_new_loading=True."):
             loaded_concat_raw_datasets = load_concat_dataset(
                 path=tmpdir, preload=False)
     assert 2 * len(concat_raw_dataset) == len(loaded_concat_raw_datasets)
@@ -145,9 +150,11 @@ def test_load_multiple_concat_windows_dataset(setup_concat_windows_dataset,
                                    'USE!'):
             concat_windows_dataset._outdated_save(path=path, overwrite=False)
         with pytest.warns(
-                UserWarning, match="The way your dataset was saved is "
-                                   "deprecated by now. Please save it again "
-                                   "using dataset.save()."):
+                UserWarning, match="The way your dataset was saved is deprecated by now. "
+                                   "Please save it again using dataset.save\\(\\). "
+                                   "If you see this warning but your dataset is already saved "
+                                   "using dataset.save\\(\\) please consider using "
+                                   "force_new_loading=True."):
             loaded_concat_windows_datasets = load_concat_dataset(
                 path=tmpdir, preload=False)
     assert 2 * len(concat_windows_dataset) == len(loaded_concat_windows_datasets)
@@ -233,17 +240,28 @@ def test_save_concat_windows_dataset(setup_concat_windows_dataset, tmpdir):
     assert not os.path.exists(os.path.join(tmpdir, f"{n_windows_datasets}"))
 
 
-def test_load_concat_raw_dataset_parallel(setup_concat_raw_dataset, tmpdir):
+@patch('braindecode.datautil.serialization._is_outdated_saved', return_value=True)
+@patch('braindecode.datautil.serialization._outdated_load_concat_dataset', return_value=None)
+def test_load_concat_raw_dataset_force_new_loading(_, __, setup_concat_raw_dataset, tmpdir):
     concat_raw_dataset = setup_concat_raw_dataset
     n_raw_datasets = len(concat_raw_dataset.datasets)
     # assert no warning raised with 'new' saving function
     with pytest.warns(None) as raised_warnings:
         concat_raw_dataset.save(path=tmpdir, overwrite=False)
         assert len(raised_warnings) == 0
-    # assert no warning raised with loading dataset saved in 'new' way
-    with pytest.warns(None) as raised_warnings:
+    # assert warning is raised when_is_outdated_save returns True (testing scenario with
+    # erroneous recognition)
+    with pytest.warns(
+            UserWarning, match="The way your dataset was saved is deprecated by now. "
+                               "Please save it again using dataset.save\\(\\). "
+                               "If you see this warning but your dataset is already saved using "
+                               "dataset.save\\(\\) please consider using force_new_loading=True."):
         loaded_concat_raw_dataset = load_concat_dataset(
             path=tmpdir, preload=False, n_jobs=2)
+    # assert no warning raised when force_new_loading=True
+    with pytest.warns(None) as raised_warnings:
+        loaded_concat_raw_dataset = load_concat_dataset(
+            path=tmpdir, preload=False, n_jobs=2, force_new_loading=True)
         assert len(raised_warnings) == 0
     assert len(concat_raw_dataset) == len(loaded_concat_raw_dataset)
     assert (len(concat_raw_dataset.datasets) ==
