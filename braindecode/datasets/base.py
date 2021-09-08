@@ -176,8 +176,6 @@ class WindowsDataset(BaseDataset):
         if self.targets_from == 'channels':
             self.misc_mask = np.array(self.windows.get_channel_types()) == 'misc'
 
-    from line_profiler_pycharm import profile
-    @profile
     def __getitem__(self, index):
         """Get a window and its target.
 
