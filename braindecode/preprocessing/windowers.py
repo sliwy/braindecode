@@ -272,6 +272,11 @@ def _create_windows_from_events(
             'size.')
 
     description = events[:, -1]
+    mask = (stops + trial_stop_offset_samples - onsets - trial_start_offset_samples) >= window_size_samples
+    if mask.mean() != 1.:
+        print(f'Dropping {mask.shape[0], mask.sum()} windows.')
+        stops = stops[mask]
+        onsets = onsets[mask]
 
     i_trials, i_window_in_trials, starts, stops = _compute_window_inds(
         onsets, stops, trial_start_offset_samples,

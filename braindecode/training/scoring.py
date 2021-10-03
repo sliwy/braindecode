@@ -270,6 +270,8 @@ class PostEpochTrainScoring(EpochScoring):
             for data in iterator:
                 batch_X, batch_y = unpack_data(data)
                 yp = net.evaluation_step(batch_X, training=False)
+                if isinstance(yp, tuple):
+                    yp = yp[0]
                 yp = yp.to(device="cpu")
                 y_test.append(self.target_extractor(batch_y))
                 y_preds.append(yp)
