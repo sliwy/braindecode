@@ -169,11 +169,16 @@ class WindowsDataset(BaseDataset):
             raise ValueError('Wrong value for parameter `targets_from`.')
         self.targets_from = targets_from
 
-        self.crop_inds = self.windows.metadata.loc[
-            :, ['i_window_in_trial', 'i_start_in_trial',
-                'i_stop_in_trial']].to_numpy()
+        # self.crop_inds = self.windows.metadata.loc[
+        #     :, ['i_window_in_trial', 'i_start_in_trial',
+        #         'i_stop_in_trial']].to_numpy()
         if self.targets_from == 'metadata':
             self.y = self.windows.metadata.loc[:, 'target'].to_list()
+
+    @property
+    def crop_inds(self):
+        return self.windows.metadata.loc[:, ['i_window_in_trial', 'i_start_in_trial',
+                                             'i_stop_in_trial']].to_numpy()
 
     def __getitem__(self, index):
         """Get a window and its target.
@@ -370,6 +375,20 @@ class BaseConcatDataset(ConcatDataset):
             all_dfs.append(df)
 
         return pd.concat(all_dfs)
+
+    def fix_metadata_after_torch_subset(self, idx_split):
+        ds_edges = np.concatenate([[0], self.cumulative_sizes])
+        ds_idx = pd.cut(np.array([idx_split]), ds_edges, labels=False)[0]
+        if self.datasets[ds_idx].windows.metadata['i_window_in_trial'].iloc[idx_split-ds_edges[ds_idx]] != 0:
+            start_idx = self.datasets[ds_idx].windows.metadata['i_window_in_trial'].iloc[idx_split - ds_edges[ds_idx]]
+            trial_change = np.diff(
+                self.datasets[ds_idx].windows.metadata['i_window_in_trial'].iloc[idx_split-ds_edges[ds_idx]:],
+                prepend=[np.inf]) != 1
+            max_idx_to_change = np.argmax(trial_change[1:]) + 1
+            self.datasets[ds_idx].windows.metadata['i_window_in_trial'].iloc[
+                (idx_split - ds_edges[ds_idx]): (idx_split - ds_edges[ds_idx]) + max_idx_to_change] = \
+                self.datasets[ds_idx].windows.metadata['i_window_in_trial'].iloc[
+                (idx_split - ds_edges[ds_idx]): (idx_split - ds_edges[ds_idx]) + max_idx_to_change] - start_idx
 
     @property
     def transform(self):
