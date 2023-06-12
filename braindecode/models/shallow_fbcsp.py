@@ -85,6 +85,7 @@ class ShallowFBCSPNet(nn.Sequential):
         batch_norm=True,
         batch_norm_alpha=0.1,
         drop_prob=0.5,
+        first_conv_bias=False,
     ):
         super().__init__()
         if final_conv_length == "auto":
@@ -105,6 +106,7 @@ class ShallowFBCSPNet(nn.Sequential):
         self.batch_norm = batch_norm
         self.batch_norm_alpha = batch_norm_alpha
         self.drop_prob = drop_prob
+        self.first_conv_bias = first_conv_bias
 
         self.add_module("ensuredims", Ensure4d())
         pool_class = dict(max=nn.MaxPool2d, mean=nn.AvgPool2d)[self.pool_mode]
@@ -126,7 +128,7 @@ class ShallowFBCSPNet(nn.Sequential):
                     self.n_filters_spat,
                     (1, self.in_chans),
                     stride=1,
-                    bias=not self.batch_norm,
+                    bias=not self.batch_norm or self.first_conv_bias,
                 ),
             )
             n_filters_conv = self.n_filters_spat
@@ -138,7 +140,7 @@ class ShallowFBCSPNet(nn.Sequential):
                     self.n_filters_time,
                     (self.filter_time_length, 1),
                     stride=1,
-                    bias=not self.batch_norm,
+                    bias=not self.batch_norm or self.first_conv_bias,
                 ),
             )
             n_filters_conv = self.n_filters_time
